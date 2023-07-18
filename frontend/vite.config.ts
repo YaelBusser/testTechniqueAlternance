@@ -10,7 +10,7 @@ export default defineConfig({
                 target: "https://kaamelott.chaudie.re",
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/kaamelott/, ""),
-            }
+            },
         }
     }
 })
