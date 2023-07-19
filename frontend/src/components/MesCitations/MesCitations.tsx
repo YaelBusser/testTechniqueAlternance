@@ -21,6 +21,7 @@ export function MesCitations() {
     const [citationInput, setCitationInput] = useState("");
     const [editedCitation, setEditedCitation] = useState("");
 
+    const [search, setSearch] = useState("");
     const openModalAdd = () => {
         setIsModalAddOpen(true);
     };
@@ -58,16 +59,16 @@ export function MesCitations() {
     }
 
     const addCitation = async () => {
-        try{
+        try {
             const response = await axios.post("http://localhost:5555/citations", {
                 citation: citationInput,
             });
-            if(response.status === 201){
+            if (response.status === 201) {
                 closeModalAdd();
                 setCitationInput("");
                 fetchCitationsUser();
             }
-        }catch (error){
+        } catch (error) {
             console.log("Erreur lors de l'ajout d'une citation personnalisée : ", error);
         }
     };
@@ -75,11 +76,11 @@ export function MesCitations() {
     const deleteCitation = async (idCitation) => {
         try {
             const response = await axios.delete(`http://localhost:5555/citations/${idCitation}`);
-            if(response.status === 201){
+            if (response.status === 201) {
                 closeModalDelete();
                 fetchCitationsUser();
             }
-        }catch (error){
+        } catch (error) {
             console.log("Erreur lors de la suppression d'une citation personnalisée : ", error);
         }
     };
@@ -89,14 +90,16 @@ export function MesCitations() {
             const response = await axios.put(`http://localhost:5555/citations/${idCitation}`, {
                 citation: editedCitation,
             });
-            if(response.status === 201){
+            if (response.status === 201) {
                 closeModalEdit();
                 fetchCitationsUser();
             }
-        }catch (error){
+        } catch (error) {
             console.log("Erreur lors de la suppression d'une citation personnalisée : ", error);
         }
     };
+
+    const searchCitations = citationsUser.filter((citationsUser) => citationsUser.citation.toLowerCase().includes(search.toLowerCase()));
 
     const theme = createTheme({
         palette: {
@@ -119,7 +122,8 @@ export function MesCitations() {
                 <button onClick={openModalAdd}><i className="fa-light fa-plus"></i> Ajouter une citation</button>
                 <div className="container-search">
                     <i className="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Rechercher dans mes citations"/>
+                    <input type="text" onChange={(e) => setSearch(e.target.value)}
+                           placeholder="Rechercher dans mes citations"/>
                 </div>
                 <ThemeProvider theme={theme}>
                     <Dialog open={isModalAddOpen} onClose={closeModalAdd}>
@@ -133,7 +137,7 @@ export function MesCitations() {
                                     onChange={(e) => setCitationInput(e.target.value)}
                                     maxLength={255}
                                     style={{
-                                        width: '100%',
+                                        width: '95%',
                                         maxHeight: '500px',
                                         minHeight: '100px',
                                         resize: 'none',
@@ -142,7 +146,7 @@ export function MesCitations() {
                                         borderRadius: '10px',
                                         paddingLeft: '10px',
                                         paddingTop: '10px',
-                                        fontSize: '15px'
+                                        fontSize: '15px',
                                     }}
                                 />
                             </DialogContentText>
@@ -159,7 +163,7 @@ export function MesCitations() {
                 </ThemeProvider>
             </div>
             <div className="container-citations-user">
-                {citationsUser.map((citationUser, index) => (
+                {searchCitations.map((citationUser, index) => (
                     <div key={index}
                          className={`container-citation-user ${index === citationsUser.length - 1 ? "last-citation" : ""}`}>
                         <p>{citationUser.citation}</p>
@@ -170,7 +174,7 @@ export function MesCitations() {
                                 <Dialog open={isModalDeleteOpen === index} onClose={closeModalDelete}>
                                     <DialogTitle>Supprimer cette citation ?</DialogTitle>
                                     <DialogContent style={{minWidth: '500px'}}>
-                                        <DialogContentText style={{ fontStyle: 'italic', }}>
+                                        <DialogContentText style={{fontStyle: 'italic',}}>
                                             "{citationUser.citation}"
                                         </DialogContentText>
                                     </DialogContent>
@@ -178,7 +182,8 @@ export function MesCitations() {
                                         <Button onClick={closeModalDelete} variant="contained" color="secondary">
                                             Annuler
                                         </Button>
-                                        <Button variant="contained" color={"error"} onClick={() => deleteCitation(citationUser.id)}>
+                                        <Button variant="contained" color={"error"}
+                                                onClick={() => deleteCitation(citationUser.id)}>
                                             Supprimer
                                         </Button>
                                     </DialogActions>
@@ -212,7 +217,8 @@ export function MesCitations() {
                                         <Button onClick={closeModalEdit} variant="contained" color="secondary">
                                             Annuler
                                         </Button>
-                                        <Button variant="contained" color={"success"} onClick={() => editCitation(citationUser.id)}>
+                                        <Button variant="contained" color={"success"}
+                                                onClick={() => editCitation(citationUser.id)}>
                                             Sauvegarder
                                         </Button>
                                     </DialogActions>

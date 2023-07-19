@@ -1,12 +1,23 @@
 import axios from 'axios';
 import {useState, useEffect} from 'react';
+import {Card, CardContent, Typography, Button} from '@mui/material';
+
+
+interface FavorisData {
+    id: number;
+    citation: string;
+    personnage: string;
+    episode: string;
+}
 
 export function Home() {
-    const [citation, setCitation] = useState("");
-    const [personnage, setPersonnage] = useState("");
-    const [episode, setEpisode] = useState("");
-    const [favoris, setFavoris] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [citation, setCitation] = useState<string>("");
+    const [personnage, setPersonnage] = useState<string>("");
+    const [episode, setEpisode] = useState<string>("");
+    const [favoris, setFavoris] = useState<FavorisData[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isHover, setIsHover] = useState<boolean>(false);
+    const [isFavorisToggle, setIsFavorisToggle] = useState<boolean>(false);
 
     const fetchCitationRandom = async () => {
         try {
@@ -20,6 +31,18 @@ export function Home() {
         }
     };
 
+    const fetchCitationUser = async () => {
+        try {
+            const response = await axios.get("http://localhost:5555/citations/random");
+            setCitation(response.data.citation);
+            setPersonnage(response.data.infos.personnage);
+            setEpisode(response.data.infos.episode);
+            setIsLoading(false);
+        } catch (error) {
+            console.error("Erreur lors de la récupération de la citation : ", error);
+        }
+    };
+
     const addFavoris = async () => {
         try {
             await axios.post("http://localhost:5555/favoris", {
@@ -27,13 +50,34 @@ export function Home() {
                 episode: episode,
                 citation: citation,
             });
+            fetchFavoris();
         } catch (error) {
             console.error("Erreur lors de l'ajout de la citation aux favoris' : ", error);
         }
     };
 
+    const fetchFavoris = async () => {
+        try {
+            const response = await axios.get("http://localhost:5555/favoris");
+            setFavoris(response.data);
+        } catch (error) {
+            console.error("Erreur lors de la récupération de la citation : ", error);
+        }
+    };
+    const toggleFavoris = () => {
+        setIsFavorisToggle((prevState) => !prevState);
+    };
+
+    const deleteFavoris = async (idFavoris) => {
+        const response = await axios.delete(`http://localhost:5555/favoris/${idFavoris}`)
+        if (response.status === 201) {
+            fetchFavoris();
+        }
+    }
+
     useEffect(() => {
         fetchCitationRandom();
+        fetchFavoris();
     }, []);
     if (isLoading) {
         if (!citation) {
@@ -45,22 +89,55 @@ export function Home() {
                 <h1>Citations</h1>
                 <div className="container-citation-random">
                     <p className="citation-random">"{citation}"</p>
-                    <div className="citation-random-infos">
-                        <p>{personnage} - "{episode}"</p>
-                    </div>
-                    <div className="citation-random-favoris btn-favoris" onClick={() => addFavoris()}>
-                        <i className="fa-regular fa-star"></i>
-                        <p>Mettre en favoris</p>
-                    </div>
+                    {personnage ? (
+                        <div className="citation-random-infos">
+                            <p>{personnage} - "{episode}"</p>
+                        </div>
+                    ) : (
+                        <span></span>
+                    )}
+                    {personnage ? (
+                        <div className="citation-random-favoris btn-favoris" onClick={() => addFavoris()}
+                             onMouseOver={(e) => setIsHover(true)} onMouseOut={(e) => setIsHover(false)}>
+                            <i className={`${isHover ? "fa-solid" : "fa-regular"} fa-star btn-favoris`}></i>
+                            <p>Mettre en favoris</p>
+                        </div>
+                    ) : (
+                            <span></span>
+                    )}
                 </div>
                 <div className="container-autre-citation">
                     <h2>Afficher une autre citation</h2>
                     <div className="autre-citation-btn">
-                        <button><i className="fa-solid fa-eye"></i>Parmi mes citations</button>
+                        <button onClick={fetchCitationUser}><i className="fa-solid fa-eye"></i>Parmi mes citations
+                        </button>
                         <button onClick={fetchCitationRandom}><i className="fa-solid fa-eye"></i>Parmi les citations de
                             Kaamelott
                         </button>
                     </div>
+                </div>
+                <div className="container-mesFavoris">
+                    <button onClick={toggleFavoris} className="btn-toggle-favoris">
+                        {isFavorisToggle ? 'Masquer Favoris' : 'Afficher Favoris'}
+                    </button>
+                    {isFavorisToggle ? (
+                        favoris.length === 0 ? (
+                            <p className="no-favoris">Aucuns favoris</p>
+                        ) : (
+                            favoris.map((favori, index) => (
+                                <Card key={index} className="mesFavoris">
+                                    <CardContent className="mesFavoris-card">
+                                        <Typography variant="body2" className="mesFavoris-erase"><i
+                                            className="fa-solid fa-eraser" onClick={() => deleteFavoris(favori.id)}></i></Typography>
+                                        <Typography variant="body3" className="mesFavoris-block-citation"><p
+                                            className="mesFavoris-citation">{favori.citation}</p></Typography>
+                                        <Typography variant="body2"
+                                                    className="mesFavoris-infos">{`${favori.personnage} - "${favori.episode}"`}</Typography>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        )
+                    ) : null}
                 </div>
             </div>
         );

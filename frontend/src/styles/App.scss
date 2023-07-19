@@ -258,3 +258,79 @@ hr {
   color: #122236;
   cursor: pointer;
 }
+
+.container-mesFavoris{
+  width: 100%;
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.mesFavoris-citation{
+  font-size: 18px;
+  font-family: $fontMain;
+  font-style: italic;
+  width: 80%;
+  text-align: center;
+}
+
+.mesFavoris-infos{
+  font-family: $fontMain;
+  font-style: italic;
+  text-align: end;
+}
+
+.btn-favoris{
+  transition: all 0.1s ease-in-out;
+}
+
+.btn-toggle-favoris{
+  padding: 1rem;
+  border: none;
+  border-radius: 10px;
+  color: $colorPrimary;
+  font-family: $fontMain;
+  font-weight: bold;
+  font-size: 18px;
+  transition: all 0.3s ease-in;
+  background-color: white;
+  width: 20%;
+}
+
+.btn-toggle-favoris:hover{
+  color: white;
+  background-color: $colorPrimary;
+}
+
+.mesFavoris{
+  width: 100%;
+  margin-top: 10px;
+  border: 2px solid $colorPrimary;
+}
+
+.mesFavoris-card{
+  font-family: $fontMain;
+  background-color: rgba(98,3,173,0.05);
+}
+
+.no-favoris{
+  font-family: $fontMain;
+}
+
+.mesFavoris-erase{
+  text-align: end;
+}
+
+.mesFavoris-erase i{
+  font-size: 20px;
+  color: $colorPrimary;
+  cursor: pointer;
+}
+
+.mesFavoris-block-citation{
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}

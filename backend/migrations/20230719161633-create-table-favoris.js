@@ -15,7 +15,7 @@ module.exports = {
         allowNull: false,
       },
       citation: {
-        type: Sequelize.STRING(255),
+        type: Sequelize.TEXT,
         allowNull: false,
       },
     });
