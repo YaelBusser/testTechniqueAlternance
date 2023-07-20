@@ -9,17 +9,27 @@ import {
     DialogContentText,
     DialogActions,
     TextareaAutosize,
+    IconButton,
+    Snackbar
 } from '@mui/material';
 import axios from "axios";
 
-export function MesCitations() {
-    const [isModalAddOpen, setIsModalAddOpen] = useState(false);
-    const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(null);
-    const [isModalEditOpen, setIsModalEditOpen] = useState(null);
+interface CitationsUserDate {
+    citation: string;
+}
 
-    const [citationsUser, setCitationsUser] = useState([]);
-    const [citationInput, setCitationInput] = useState("");
-    const [editedCitation, setEditedCitation] = useState("");
+export function MesCitations() {
+    const [isModalAddOpen, setIsModalAddOpen] = useState<boolean>(false);
+    const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<boolean>(false);
+    const [isModalEditOpen, setIsModalEditOpen] = useState<boolean>(false);
+
+    const [citationsUser, setCitationsUser] = useState<CitationsUserDate[]>([]);
+    const [citationInput, setCitationInput] = useState<string>("");
+    const [editedCitation, setEditedCitation] = useState<string>("");
+
+    const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
+    const [snackbarContent, setSnackbarContent] = useState<string>("");
+    const [styleSnackbar, setStyleSnackbar] = useState<string>("");
 
     const [search, setSearch] = useState("");
     const openModalAdd = () => {
@@ -60,13 +70,29 @@ export function MesCitations() {
 
     const addCitation = async () => {
         try {
-            const response = await axios.post("http://localhost:5555/citations", {
-                citation: citationInput,
-            });
-            if (response.status === 201) {
-                closeModalAdd();
-                setCitationInput("");
-                fetchCitationsUser();
+            if (citationInput.length >= 1 && citationInput.length <= 255) {
+                const citationUserExists = citationsUser.some((citationUser) => citationUser.citation === citationInput);
+                if (citationUserExists) {
+                    setOpenSnackbar(true);
+                    setSnackbarContent("Votre citation existe déjà !");
+                    setStyleSnackbar("snackbarError");
+                } else {
+                    const response = await axios.post("http://localhost:5555/citations", {
+                        citation: citationInput,
+                    });
+                    if (response.status === 201) {
+                        closeModalAdd();
+                        setCitationInput("");
+                        fetchCitationsUser();
+                        setOpenSnackbar(true);
+                        setSnackbarContent("Votre citation a bien été ajoutée !");
+                        setStyleSnackbar("snackbar");
+                    }
+                }
+            } else {
+                setOpenSnackbar(true);
+                setSnackbarContent("Votre citation doit contenir entre 1 et 255 caractères !");
+                setStyleSnackbar("snackbarError");
             }
         } catch (error) {
             console.log("Erreur lors de l'ajout d'une citation personnalisée : ", error);
@@ -79,6 +105,9 @@ export function MesCitations() {
             if (response.status === 201) {
                 closeModalDelete();
                 fetchCitationsUser();
+                setOpenSnackbar(true);
+                setSnackbarContent("La citation a bien été supprimée !");
+                setStyleSnackbar("snackbar")
             }
         } catch (error) {
             console.log("Erreur lors de la suppression d'une citation personnalisée : ", error);
@@ -87,12 +116,28 @@ export function MesCitations() {
 
     const editCitation = async (idCitation) => {
         try {
-            const response = await axios.put(`http://localhost:5555/citations/${idCitation}`, {
-                citation: editedCitation,
-            });
-            if (response.status === 201) {
-                closeModalEdit();
-                fetchCitationsUser();
+            if (editedCitation.length >= 1 && editedCitation.length <= 255) {
+                const editedCitationExists = citationsUser.some((citationUser) => citationUser.citation === editedCitation);
+                if (editedCitationExists) {
+                    setOpenSnackbar(true);
+                    setSnackbarContent("Les modifications apportées à la citation existent déjà !");
+                    setStyleSnackbar("snackbarError");
+                } else {
+                    const response = await axios.put(`http://localhost:5555/citations/${idCitation}`, {
+                        citation: editedCitation,
+                    });
+                    if (response.status === 201) {
+                        closeModalEdit();
+                        fetchCitationsUser();
+                        setOpenSnackbar(true);
+                        setSnackbarContent("La citation a bien été modifiée !");
+                        setStyleSnackbar("snackbar");
+                    }
+                }
+            }else{
+                setOpenSnackbar(true);
+                setSnackbarContent("Les modifications apportées à votre citation doit contenir entre 1 et 255 caractères !");
+                setStyleSnackbar("snackbarError");
             }
         } catch (error) {
             console.log("Erreur lors de la suppression d'une citation personnalisée : ", error);
@@ -117,6 +162,23 @@ export function MesCitations() {
     }, []);
     return (
         <div className="container-mes-citations">
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={5000}
+                onClose={() => setOpenSnackbar(false)}
+                message={snackbarContent}
+                ContentProps={{className: `${styleSnackbar}`}}
+                action={
+                    <IconButton
+                        size="small"
+                        aria-label="close"
+                        color="inherit"
+                        onClick={() => setOpenSnackbar(false)}
+                    >
+                        <i className="fa-solid fa-circle-xmark"></i>
+                    </IconButton>
+                }
+            />
             <h2>Mes citations</h2>
             <div className="container-add-search">
                 <button onClick={openModalAdd}><i className="fa-light fa-plus"></i> Ajouter une citation</button>

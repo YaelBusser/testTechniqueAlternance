@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {useState, useEffect} from 'react';
-import {Card, CardContent, Typography, Button} from '@mui/material';
+import {Card, CardContent, Typography, IconButton, Snackbar} from '@mui/material';
 
 
 interface FavorisData {
@@ -18,6 +18,11 @@ export function Home() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isHover, setIsHover] = useState<boolean>(false);
     const [isFavorisToggle, setIsFavorisToggle] = useState<boolean>(false);
+    const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
+    const [snackbarContent, setSnackbarContent] = useState<string>("");
+    const [styleSnackbar, setStyleSnackbar] = useState<string>("");
+
+
 
     const fetchCitationRandom = async () => {
         try {
@@ -26,6 +31,7 @@ export function Home() {
             setPersonnage(response.data.citation.infos.personnage);
             setEpisode(response.data.citation.infos.episode);
             setIsLoading(false);
+
         } catch (error) {
             console.error("Erreur lors de la récupération de la citation : ", error);
         }
@@ -45,12 +51,22 @@ export function Home() {
 
     const addFavoris = async () => {
         try {
-            await axios.post("http://localhost:5555/favoris", {
-                personnage: personnage,
-                episode: episode,
-                citation: citation,
-            });
-            fetchFavoris();
+            const favorisAlreadyExists = favoris.some((favori) => favori.citation === citation);
+            if (favorisAlreadyExists) {
+                setOpenSnackbar(true);
+                setSnackbarContent("Cette citation est déjà en favoris !");
+                setStyleSnackbar("snackbarError");
+            } else {
+                await axios.post("http://localhost:5555/favoris", {
+                    personnage: personnage,
+                    episode: episode,
+                    citation: citation,
+                });
+                fetchFavoris();
+                setOpenSnackbar(true);
+                setSnackbarContent("Citation ajoutée à vos favoris !");
+                setStyleSnackbar("snackbar");
+            }
         } catch (error) {
             console.error("Erreur lors de l'ajout de la citation aux favoris' : ", error);
         }
@@ -72,8 +88,12 @@ export function Home() {
         const response = await axios.delete(`http://localhost:5555/favoris/${idFavoris}`)
         if (response.status === 201) {
             fetchFavoris();
+            setOpenSnackbar(true);
+            setSnackbarContent("La citation a bien été supprimée de vos favoris !");
+            setStyleSnackbar("snackbar");
         }
     }
+
 
     useEffect(() => {
         fetchCitationRandom();
@@ -83,11 +103,29 @@ export function Home() {
         if (!citation) {
             return <div>Loading...</div>;
         }
-    } else {
+    }
+    else {
         return (
             <div className="main">
+                <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={5000}
+                    onClose={() => setOpenSnackbar(false)}
+                    message={snackbarContent}
+                    ContentProps={{className: `${styleSnackbar}`}}
+                    action={
+                        <IconButton
+                            size="small"
+                            aria-label="close"
+                            color="inherit"
+                            onClick={() => setOpenSnackbar(false)}
+                        >
+                            <i className="fa-solid fa-circle-xmark"></i>
+                        </IconButton>
+                    }
+                />
                 <h1>Citations</h1>
-                <div className="container-citation-random">
+                <div className={`container-citation-random`}>
                     <p className="citation-random">"{citation}"</p>
                     {personnage ? (
                         <div className="citation-random-infos">
@@ -101,9 +139,10 @@ export function Home() {
                              onMouseOver={(e) => setIsHover(true)} onMouseOut={(e) => setIsHover(false)}>
                             <i className={`${isHover ? "fa-solid" : "fa-regular"} fa-star btn-favoris`}></i>
                             <p>Mettre en favoris</p>
+
                         </div>
                     ) : (
-                            <span></span>
+                        <span></span>
                     )}
                 </div>
                 <div className="container-autre-citation">
