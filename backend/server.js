@@ -45,23 +45,27 @@ app.get("/citations/random", (req, res) => {
         if (err) {
             return res.json(err);
         } else {
-            const citation = {
-                citation: data[0].citation,
-                infos: {
-                    auteur: null,
-                    acteur: null,
-                    personnage: null,
-                    saison: null,
-                    episode: null,
-                },
-            };
-            return res.json(citation);
+            if (data.length === 0) {
+                return res.json("Aucune citation !");
+            } else {
+                const citation = {
+                    citation: data[0].citation,
+                    infos: {
+                        auteur: null,
+                        acteur: null,
+                        personnage: null,
+                        saison: null,
+                        episode: null,
+                    },
+                };
+                return res.json(citation);
+            }
         }
     });
 });
 
 app.post("/citations", (req, res) => {
-    const { citation } = req.body;
+    const {citation} = req.body;
     const sql = "INSERT INTO citations (citation) VALUES (?)";
     bdd.query(sql, [citation], (err, result) => {
         if (err) {
@@ -86,7 +90,7 @@ app.delete("/citations/:idCitation", (req, res) => {
 
 app.put("/citations/:idCitation", (req, res) => {
     const idCitation = req.params.idCitation;
-    const { citation } = req.body;
+    const {citation} = req.body;
 
     const sql = "UPDATE citations SET citation = ? WHERE id = ?;";
     bdd.query(sql, [citation, idCitation], (err) => {
@@ -99,12 +103,12 @@ app.put("/citations/:idCitation", (req, res) => {
 });
 
 app.post("/favoris", (req, res) => {
-    const { personnage, episode, citation } = req.body;
+    const {personnage, episode, citation} = req.body;
 
     const sql = "INSERT INTO favoris (personnage, episode, citation) VALUES (?, ?, ?)";
     bdd.query(sql, [personnage, episode, citation], (err, result) => {
         if (err) {
-            return res.status(500).json({ error: "Erreur lors de l'insertion des données dans la base de données." });
+            return res.status(500).json({error: "Erreur lors de l'insertion des données dans la base de données."});
         } else {
             return res.status(201).json("Citation ajoutée aux favoris avec succès !");
         }

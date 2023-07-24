@@ -9,7 +9,7 @@ export default defineConfig({
             "/api": {
                 target: "https://kaamelott.chaudie.re",
                 changeOrigin: true,
-                rewrite: (path) => path.replace(/kaamelott/, ""),
+                //rewrite: (path) => path.replace(/kaamelott/, ""),
             },
         }
     }

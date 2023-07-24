@@ -26,7 +26,7 @@ export function Home() {
 
     const fetchCitationRandom = async () => {
         try {
-            const response = await axios.get("/api/kaamelott/random");
+            const response = await axios.get("/api/random");
             setCitation(response.data.citation.citation);
             setPersonnage(response.data.citation.infos.personnage);
             setEpisode(response.data.citation.infos.episode);
